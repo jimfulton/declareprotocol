@@ -1,0 +1,5 @@
+.patchmill/pi-agent
+.patchmill/runs
+.patchmill/triage-runs
+.worktrees/
+.pi/todos/
