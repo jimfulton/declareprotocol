@@ -12,6 +12,8 @@ dependencies = []
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "pytest-cov>=5",
+    "ruff>=0.9",
 ]
 
 [build-system]
@@ -22,6 +24,11 @@ build-backend = "uv_build"
 python_files = [
     "*_test.py",
     "test_*.py",
+]
+addopts = [
+    "--cov=declareprotocol",
+    "--cov-report=term-missing",
+    "--cov-fail-under=50",
 ]
 
 [tool.ruff.lint.per-file-ignores]
