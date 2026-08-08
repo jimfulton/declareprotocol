@@ -3,3 +3,4 @@
 .patchmill/triage-runs
 .worktrees/
 .pi/todos/
+.coverage
