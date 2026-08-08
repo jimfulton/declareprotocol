@@ -20,7 +20,7 @@ jobs:
       pull-requests: read
     steps:
     - name: Validate PR title
-      uses: amannn/action-semantic-pull-request@e5f33630df4d7046c399196936cb167905ee0f59 # v5.5.3
+      uses: amannn/action-semantic-pull-request@0723387faaf9b38adef4775cd42cfd5155ed6017 # v5.5.3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
