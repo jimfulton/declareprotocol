@@ -1,6 +1,6 @@
 [project]
 name = "declareprotocol"
-version = "0.1.0"
+version = "1.0.0"
 description = "Protocol declarations as behavioral contracts"
 readme = "README.md"
 authors = [
@@ -34,3 +34,9 @@ addopts = [
 [tool.ruff.lint.per-file-ignores]
 "**/*_test.py" = ["D"]
 "**/test_*.py" = ["D"]
+
+[tool.semantic_release]
+version_toml = [
+    "pyproject.toml:project.version",
+]
+build_command = "uv build --no-sources"
