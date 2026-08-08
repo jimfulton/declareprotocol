@@ -31,3 +31,4 @@ runner = Runner()
 print(declareprotocol.implementedBy(Runner))  # (<class 'HasRun'>,)
 print(declareprotocol.providedBy(runner))      # (<class 'HasRun'>,)
 ```
+
