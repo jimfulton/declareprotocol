@@ -1,12 +1,12 @@
 # Protocols as contracts and protocol dispatch
 
 Python Protocols provide duck typing, which is a common pattern for
-describing behavior and protocols are well supported by type-checking
+describing behavior, and protocols are well supported by type-checking
 tools like `mypy` and `ty`. They don't support assertions that classes or
 objects implement protocols. They don't support promises to abide
-by contracts, and views such assertions as non-pythonic.
+by contracts, and view such assertions as non-pythonic.
 
-On the other hand, [Design by
+On the other hand, [design by
 contract](https://en.wikipedia.org/wiki/Design_by_contract) is a
 popular and valuable approach for separating defined behaviors from
 implementation.  This package allows classes (and objects) to promise
@@ -15,9 +15,6 @@ to implement protocols, using protocols as (semi-formal) contracts.
 This package takes inspiration and reimplements APIs from
 [zope.interface](https://zopeinterface.readthedocs.io/en/latest/README.html),
 substituting protocols for interfaces.
-
-Having explicit declarations also supports behavior-based dispatch,
-which this package also provides (in the future :smile:).
 
 ## Usage
 
@@ -37,3 +34,13 @@ runner = Runner()
 print(declareprotocol.implementedBy(Runner))  # (<class 'HasRun'>,)
 print(declareprotocol.providedBy(runner))      # (<class 'HasRun'>,)
 ```
+
+Having explicit declarations also supports behavior-based dispatch,
+which this package also provides.
+
+```python
+
+if HasRun in declareprotocol.providedBy(runner):
+    ...
+```
+
