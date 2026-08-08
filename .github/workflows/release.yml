@@ -48,6 +48,7 @@ jobs:
         # Determine next version, update files, commit, tag, and build package
         uv run --with python-semantic-release semantic-release version
       env:
+        GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Publish package distributions to PyPI
