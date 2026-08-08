@@ -1,22 +1,20 @@
 import typing
 
-import declareprotocol
 import pytest
+
+import declareprotocol
 
 
 class HasRun(typing.Protocol):
-    def run(self) -> str:
-        ...
+    def run(self) -> str: ...
 
 
 class HasStop(typing.Protocol):
-    def stop(self) -> str:
-        ...
+    def stop(self) -> str: ...
 
 
 class HasPrivateHook(typing.Protocol):
-    def _hook(self) -> None:
-        ...
+    def _hook(self) -> None: ...
 
 
 class HasData(typing.Protocol):
@@ -26,7 +24,7 @@ class HasData(typing.Protocol):
 @declareprotocol.implementer(HasRun)
 class Runner:
     def run(self) -> str:
-        return 'run'
+        return "run"
 
 
 def test_implementer_rejects_non_protocol() -> None:
@@ -46,12 +44,12 @@ def test_implementedBy_includes_inherited_declarations() -> None:
     @declareprotocol.implementer(HasStop)
     class Child(Runner):
         def stop(self) -> str:
-            return 'stop'
+            return "stop"
 
     assert declareprotocol.implementedBy(Child) == (
         HasStop,
         HasRun,
-        )
+    )
 
 
 def test_directlyProvides_replaces_direct_declarations() -> None:
@@ -70,7 +68,7 @@ def test_alsoProvides_adds_without_duplicates() -> None:
     assert declareprotocol.directlyProvidedBy(runner) == (
         HasRun,
         HasStop,
-        )
+    )
 
 
 def test_noLongerProvides_removes_only_direct_protocols() -> None:
@@ -91,7 +89,7 @@ def test_providedBy_merges_direct_and_class_declarations() -> None:
     assert declareprotocol.providedBy(runner) == (
         HasStop,
         HasRun,
-        )
+    )
 
 
 def test_directlyProvides_rejects_non_protocol() -> None:
