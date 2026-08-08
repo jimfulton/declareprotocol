@@ -4,3 +4,4 @@
 .worktrees/
 .pi/todos/
 .coverage
+__pycache__
