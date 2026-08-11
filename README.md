@@ -44,3 +44,22 @@ if HasRun in declareprotocol.providedBy(runner):
     ...
 ```
 
+## Adapters
+
+An adapter registry can select and invoke factories using declared protocols:
+
+```python
+class Summary(typing.Protocol):
+    text: str
+
+registry = declareprotocol.AdapterRegistry()
+registry.register(
+    (HasRun,),
+    Summary,
+    "",
+    lambda value: f"summary: {value.run()}",
+)
+
+assert registry.queryAdapter(runner, Summary) == "summary: run"
+```
+

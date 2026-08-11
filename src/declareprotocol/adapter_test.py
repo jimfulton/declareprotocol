@@ -343,3 +343,7 @@ def test_query_propagates_non_callable_and_factory_errors() -> None:
 
     with pytest.raises(RuntimeError, match="factory failed"):
         registry.queryAdapter(source, Target)
+
+
+def test_adapter_registry_is_exported_from_package() -> None:
+    assert declareprotocol.AdapterRegistry is AdapterRegistry
