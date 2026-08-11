@@ -117,6 +117,80 @@ class AdapterRegistry:
                 return registration.value
         return None
 
+    @classmethod
+    def _normalize_lookup_required(
+        cls,
+        required: typing.Iterable[LookupRequirement],
+    ) -> tuple[Declaration, ...]:
+        normalized: list[Declaration] = []
+        for requirement in required:
+            if isinstance(requirement, tuple):
+                declaration = requirement
+            else:
+                cls._validate_protocol(requirement)
+                declaration = (requirement,)
+            for protocol in declaration:
+                cls._validate_protocol(protocol)
+            normalized.append(declaration)
+        return tuple(normalized)
+
+    @staticmethod
+    def _provided_score(
+        registered: Protocol,
+        requested: Protocol,
+    ) -> tuple[int, int] | None:
+        try:
+            distance = registered.__mro__.index(requested)
+        except ValueError:
+            return None
+        return (0 if distance == 0 else 1, distance)
+
+    @staticmethod
+    def _required_score(
+        registered: Required,
+        declaration: Declaration,
+    ) -> tuple[int, int, int] | None:
+        if registered is None:
+            return (2, 0, 0)
+
+        matches: list[tuple[int, int, int]] = []
+        for declaration_index, protocol in enumerate(declaration):
+            try:
+                distance = protocol.__mro__.index(registered)
+            except ValueError:
+                continue
+            matches.append(
+                (
+                    0 if distance == 0 else 1,
+                    distance,
+                    declaration_index,
+                )
+            )
+        return min(matches, default=None)
+
+    @classmethod
+    def _score(
+        cls,
+        registration: _Registration,
+        required: tuple[Declaration, ...],
+        provided: Protocol,
+        name: str,
+    ) -> tuple[tuple[int, int], tuple[tuple[int, int, int], ...]] | None:
+        if registration.name != name or len(registration.required) != len(required):
+            return None
+
+        provided_score = cls._provided_score(registration.provided, provided)
+        if provided_score is None:
+            return None
+
+        required_scores: list[tuple[int, int, int]] = []
+        for registered, declaration in zip(registration.required, required):
+            score = cls._required_score(registered, declaration)
+            if score is None:
+                return None
+            required_scores.append(score)
+        return provided_score, tuple(required_scores)
+
     def lookup(
         self,
         required: typing.Iterable[LookupRequirement],
@@ -124,6 +198,29 @@ class AdapterRegistry:
         name: str = "",
         default: object = None,
     ) -> object:
+        normalized = self._normalize_lookup_required(required)
         self._validate_protocol(provided)
         self._validate_name(name)
-        return default
+        matches = (
+            (score, registration.value)
+            for registration in self._registrations
+            if (
+                score := self._score(
+                    registration,
+                    normalized,
+                    provided,
+                    name,
+                )
+            )
+            is not None
+        )
+        return min(matches, default=((), default), key=lambda match: match[0])[1]
+
+    def lookup1(
+        self,
+        required: LookupRequirement,
+        provided: Protocol,
+        name: str = "",
+        default: object = None,
+    ) -> object:
+        return self.lookup((required,), provided, name, default)
