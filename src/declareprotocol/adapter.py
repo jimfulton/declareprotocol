@@ -224,3 +224,36 @@ class AdapterRegistry:
         default: object = None,
     ) -> object:
         return self.lookup((required,), provided, name, default)
+
+    def queryAdapter(
+        self,
+        obj: object,
+        provided: Protocol,
+        name: str = "",
+        default: object = None,
+    ) -> object:
+        return self.queryMultiAdapter((obj,), provided, name, default)
+
+    def queryMultiAdapter(
+        self,
+        objects: typing.Iterable[object],
+        provided: Protocol,
+        name: str = "",
+        default: object = None,
+    ) -> object:
+        sources = tuple(objects)
+        required = tuple(declarations.providedBy(obj) for obj in sources)
+        factory = self.lookup(required, provided, name)
+        if factory is None:
+            return default
+        result = factory(*sources)  # type: ignore[operator]
+        return default if result is None else result
+
+    def adapter_hook(
+        self,
+        provided: Protocol,
+        obj: object,
+        name: str = "",
+        default: object = None,
+    ) -> object:
+        return self.queryAdapter(obj, provided, name, default)

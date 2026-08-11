@@ -2,6 +2,7 @@ import typing
 
 import pytest
 
+import declareprotocol
 from declareprotocol.adapter import AdapterRegistry
 
 
@@ -230,3 +231,115 @@ def test_lookup_validates_provided_protocol_and_name() -> None:
 
     with pytest.raises(ValueError):
         registry.lookup((Source,), Target, None)  # type: ignore[arg-type]
+
+
+@declareprotocol.implementer(Source)
+class SourceObject:
+    source = "source"
+
+
+@declareprotocol.implementer(OtherSource)
+class OtherSourceObject:
+    other = "other"
+
+
+def test_query_adapter_uses_provided_declarations_and_name() -> None:
+    registry = AdapterRegistry()
+    source = SourceObject()
+    calls: list[object] = []
+
+    def factory(value: object) -> tuple[str, object]:
+        calls.append(value)
+        return ("adapted", value)
+
+    registry.register((Source,), Target, "named", factory)
+
+    assert registry.queryAdapter(source, Target, "named") == (
+        "adapted",
+        source,
+    )
+    assert calls == [source]
+    assert registry.adapter_hook(Target, source, "named") == (
+        "adapted",
+        source,
+    )
+
+
+def test_query_multi_adapter_preserves_argument_order() -> None:
+    registry = AdapterRegistry()
+    first = SourceObject()
+    second = OtherSourceObject()
+
+    def factory(*objects: object) -> tuple[object, ...]:
+        return objects
+
+    registry.register((Source, OtherSource), Target, "", factory)
+
+    assert registry.queryMultiAdapter((first, second), Target) == (
+        first,
+        second,
+    )
+
+
+def test_query_uses_inherited_and_direct_object_declarations() -> None:
+    registry = AdapterRegistry()
+    inherited = object()
+    direct = object()
+
+    class InheritedSourceObject(SourceObject):
+        pass
+
+    class DirectSourceObject:
+        alternate = "alternate"
+
+    directly_declared = DirectSourceObject()
+    declareprotocol.directlyProvides(directly_declared, AlternateSource)
+    registry.register((Source,), Target, "inherited", lambda value: inherited)
+    registry.register((AlternateSource,), Target, "direct", lambda value: direct)
+
+    assert (
+        registry.queryAdapter(
+            InheritedSourceObject(),
+            Target,
+            "inherited",
+        )
+        is inherited
+    )
+    assert registry.queryAdapter(directly_declared, Target, "direct") is direct
+
+
+def test_zero_source_lookup_and_query_invoke_zero_argument_factory() -> None:
+    registry = AdapterRegistry()
+    sentinel = object()
+    registry.register((), Target, "", lambda: sentinel)
+
+    assert registry.lookup((), Target) is not None
+    assert registry.queryMultiAdapter((), Target) is sentinel
+
+
+def test_query_defaults_for_missing_or_none_factory_result() -> None:
+    registry = AdapterRegistry()
+    source = SourceObject()
+
+    assert registry.queryAdapter(source, Target, default="missing") == "missing"
+
+    registry.register((Source,), Target, "", lambda value: None)
+
+    assert registry.queryAdapter(source, Target, default="missing") == "missing"
+
+
+def test_query_propagates_non_callable_and_factory_errors() -> None:
+    registry = AdapterRegistry()
+    source = SourceObject()
+    registry.register((Source,), Target, "", object())
+
+    with pytest.raises(TypeError):
+        registry.queryAdapter(source, Target)
+
+    def broken(value: object) -> object:
+        raise RuntimeError("factory failed")
+
+    registry.register((Source,), Target, "", broken)
+
+    with pytest.raises(RuntimeError, match="factory failed"):
+        registry.queryAdapter(source, Target)
