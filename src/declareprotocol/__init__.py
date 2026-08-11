@@ -1,3 +1,4 @@
+from .adapter import AdapterRegistry
 from .declarations import (
     alsoProvides,
     directlyProvidedBy,
@@ -9,6 +10,7 @@ from .declarations import (
 )
 
 __all__ = [
+    "AdapterRegistry",
     "alsoProvides",
     "directlyProvidedBy",
     "directlyProvides",
